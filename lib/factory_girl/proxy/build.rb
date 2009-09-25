@@ -1,4 +1,4 @@
-class Factory
+module FactoryGirl
   class Proxy #:nodoc:
     class Build < Proxy #:nodoc:
       def initialize(klass)

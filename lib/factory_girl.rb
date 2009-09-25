@@ -1,4 +1,5 @@
 require 'active_support'
+
 require 'factory_girl/proxy'
 require 'factory_girl/proxy/build'
 require 'factory_girl/proxy/create'
@@ -11,6 +12,8 @@ require 'factory_girl/attribute/dynamic'
 require 'factory_girl/attribute/association'
 require 'factory_girl/sequence'
 require 'factory_girl/aliases'
+
+include FactoryGirl
 
 # Shortcut for Factory.default_strategy.
 #

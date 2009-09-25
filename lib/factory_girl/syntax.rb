@@ -1,4 +1,4 @@
-class Factory
+module FactoryGirl
   # Provides alternate syntaxes for factory_girl. If you don't like the default
   # syntax for defining or using factories, look at one of the Factory::Syntax
   # modules:

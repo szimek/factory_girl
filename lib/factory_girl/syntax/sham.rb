@@ -1,4 +1,4 @@
-class Factory
+module FactoryGirl
   module Syntax
 
     # Adds a Sham module, which provides an alternate interface to

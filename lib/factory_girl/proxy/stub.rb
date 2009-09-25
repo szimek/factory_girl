@@ -1,4 +1,4 @@
-class Factory 
+module FactoryGirl
   class Proxy
     class Stub < Proxy #:nodoc:
       @@next_id = 1000
