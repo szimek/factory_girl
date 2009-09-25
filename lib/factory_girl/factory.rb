@@ -2,10 +2,6 @@ module FactoryGirl
 
   class Factory
 
-    # Raised when a factory is defined that attempts to instantiate itself.
-    class AssociationDefinitionError < RuntimeError
-    end
-
     class << self
       attr_accessor :factories #:nodoc:
 
@@ -29,18 +25,26 @@ module FactoryGirl
     def build_class #:nodoc:
       @build_class ||= class_for(class_name)
     end
-    
+
     def default_strategy #:nodoc:
       @options[:default_strategy] || :create
     end
 
-    def initialize (name, options = {}) #:nodoc:
+    def initialize(name, attributes, options = {}) #:nodoc:
       assert_valid_options(options)
       @factory_name = factory_name_for(name)
-      @options      = options      
-      @attributes   = []
+      @options      = options
+      @attributes   = attributes
+      if parent = options.delete(:parent)
+        inherit_from(Factory.factory_by_name(parent))
+      end
+
+      attribute_names = attributes.collect {|attribute| attribute.name }
+      unless attribute_names == attribute_names.uniq
+        raise AttributeDefinitionError, "Attributes defined twice"
+      end
     end
-    
+
     def inherit_from(parent) #:nodoc:
       @options[:class] ||= parent.class_name
       parent.attributes.each do |attribute|
@@ -50,7 +54,7 @@ module FactoryGirl
       end
     end
 
-    def run (proxy_class, overrides) #:nodoc:
+    def run(proxy_class, overrides) #:nodoc:
       proxy = proxy_class.new(build_class)
       overrides = symbolize_keys(overrides)
       overrides.each {|attr, val| proxy.set(attr, val) }
@@ -63,7 +67,7 @@ module FactoryGirl
       proxy.result
     end
 
-    def self.factory_by_name (name)
+    def self.factory_by_name(name)
       factories[name.to_sym] or raise ArgumentError.new("No such factory: #{name.to_s}")
     end
 
@@ -81,7 +85,7 @@ module FactoryGirl
 
     private
 
-    def class_for (class_or_to_s)
+    def class_for(class_or_to_s)
       if class_or_to_s.respond_to?(:to_sym)
         Object.const_get(variable_name_to_class_name(class_or_to_s))
       else
@@ -89,7 +93,7 @@ module FactoryGirl
       end
     end
 
-    def factory_name_for (class_or_to_s)
+    def factory_name_for(class_or_to_s)
       if class_or_to_s.respond_to?(:to_sym)
         class_or_to_s.to_sym
       else
@@ -97,18 +101,18 @@ module FactoryGirl
       end
     end
 
-    def attribute_defined? (name)
+    def attribute_defined?(name)
       !@attributes.detect {|attr| attr.name == name }.nil?
     end
 
     def assert_valid_options(options)
-      invalid_keys = options.keys - [:class, :parent, :default_strategy] 
+      invalid_keys = options.keys - [:class, :parent, :default_strategy]
       unless invalid_keys == []
         raise ArgumentError, "Unknown arguments: #{invalid_keys.inspect}"
       end
       assert_valid_strategy(options[:default_strategy]) if options[:default_strategy]
     end
-    
+
     def assert_valid_strategy(strategy)
       unless Factory::Proxy.const_defined? variable_name_to_class_name(strategy)
         raise ArgumentError, "Unknown strategy: #{strategy}"

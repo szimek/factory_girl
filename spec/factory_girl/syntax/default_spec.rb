@@ -9,17 +9,23 @@ describe "defining a factory" do
     stub(Factory).new { @factory }
   end
 
-  it "should create a new factory using the specified name and options" do
-    mock(Factory).new(@name, @options) { @factory }
-    Factory.define(@name, @options) {|f| }
+  after do
+    Factory.factories.clear
   end
 
-  it "should pass the factory do the block" do
+  it "should create a new factory using the specified name and options" do
+    attribute = 'attribute'
+    stub(Attribute::Static).new { attribute }
+    mock(Factory).new(@name, [attribute], @options) { @factory }
+    Factory.define(@name, @options) {|f| f.name 'value' }
+  end
+
+  it "should pass a definition proxy to the block" do
     yielded = nil
     Factory.define(@name) do |y|
       yielded = y
     end
-    yielded.should == @factory
+    yielded.should be_a(Syntax::Default::DefinitionProxy)
   end
 
   it "should add the factory to the list of factories" do
@@ -28,13 +34,19 @@ describe "defining a factory" do
   end
 
   it "should allow that factory to be found by name" do
+    Factory.define(@name) {|f| }
+    Factory.factory_by_name(@name).should == @factory
+  end
+
+  it "should allow that factory to be found by name when defined with a class" do
+    Factory.define(User) {|f| }
     Factory.factory_by_name(@name).should == @factory
   end
 end
 
-describe "a definition proxy" do
+describe Factory::Syntax::Default::DefinitionProxy do
   before do
-    @proxy = Factory.new(:post)
+    @proxy = Factory::Syntax::Default::DefinitionProxy.new
   end
 
   subject { @proxy }
@@ -86,36 +98,26 @@ describe "a definition proxy" do
   end
 
   it "should add an association with overrides" do
-    factory   = Factory.new(:post)
     name      = :user
     attr      = 'attribute'
     overrides = { :first_name => 'Ben' }
     mock(Factory::Attribute::Association).new(name, name, overrides) { attr }
-    factory.association(name, overrides)
-    factory.attributes.should include(attr)
+    subject.association(name, overrides)
+    subject.attributes.should include(attr)
   end
 
   it "should add an association with a factory name" do
-    factory = Factory.new(:post)
     attr = 'attribute'
     mock(Factory::Attribute::Association).new(:author, :user, {}) { attr }
-    factory.association(:author, :factory => :user)
-    factory.attributes.should include(attr)
+    subject.association(:author, :factory => :user)
+    subject.attributes.should include(attr)
   end
 
   it "should add an association with a factory name and overrides" do
-    factory = Factory.new(:post)
     attr = 'attribute'
     mock(Factory::Attribute::Association).new(:author, :user, :first_name => 'Ben') { attr }
-    factory.association(:author, :factory => :user, :first_name => 'Ben')
-    factory.attributes.should include(attr)
-  end
-
-  it "should raise for a self referencing association" do
-    factory = Factory.new(:post)
-    lambda {
-      factory.association(:parent, :factory => :post)
-    }.should raise_error(Factory::AssociationDefinitionError)
+    subject.association(:author, :factory => :user, :first_name => 'Ben')
+    subject.attributes.should include(attr)
   end
 
   it "should add an attribute using the method name when passed an undefined method" do
@@ -141,62 +143,61 @@ describe "a definition proxy" do
     mock(Factory::Attribute::Dynamic).new(:human_name, block) { attribute }
     subject.human_name(&block)
   end
+end
 
-  describe "after defining a factory" do
-    before do
-      @name    = :user
-      @factory = "factory"
+describe "after defining a factory" do
+  before do
+    @name    = :user
+    @factory = "factory"
 
-      Factory.factories[@name] = @factory
-    end
-
-    after { Factory.factories.clear }
-
-    it "should use Proxy::AttributesFor for Factory.attributes_for" do
-      mock(@factory).run(Factory::Proxy::AttributesFor, :attr => 'value') { 'result' }
-      Factory.attributes_for(@name, :attr => 'value').should == 'result'
-    end
-
-    it "should use Proxy::Build for Factory.build" do
-      mock(@factory).run(Factory::Proxy::Build, :attr => 'value') { 'result' }
-      Factory.build(@name, :attr => 'value').should == 'result'
-    end
-
-    it "should use Proxy::Create for Factory.create" do
-      mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
-      Factory.create(@name, :attr => 'value').should == 'result'
-    end
-
-    it "should use Proxy::Stub for Factory.stub" do
-      mock(@factory).run(Factory::Proxy::Stub, :attr => 'value') { 'result' }
-      Factory.stub(@name, :attr => 'value').should == 'result'
-    end
-
-    it "should use default strategy option as Factory.default_strategy" do
-      stub(@factory).default_strategy { :create }
-      mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
-      Factory.default_strategy(@name, :attr => 'value').should == 'result'
-    end
-
-    it "should use the default strategy for the global Factory method" do
-      stub(@factory).default_strategy { :create }
-      mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
-      Factory(@name, :attr => 'value').should == 'result'
-    end
-
-    [:build, :create, :attributes_for, :stub].each do |method|
-      it "should raise an ArgumentError on #{method} with a nonexistant factory" do
-        lambda { Factory.send(method, :bogus) }.should raise_error(ArgumentError)
-      end
-
-      it "should recognize either 'name' or :name for Factory.#{method}" do
-        stub(@factory).run
-        lambda { Factory.send(method, @name.to_s) }.should_not raise_error
-        lambda { Factory.send(method, @name.to_sym) }.should_not raise_error
-      end
-    end
+    Factory.factories[@name] = @factory
   end
 
+  after { Factory.factories.clear }
+
+  it "should use Proxy::AttributesFor for Factory.attributes_for" do
+    mock(@factory).run(Factory::Proxy::AttributesFor, :attr => 'value') { 'result' }
+    Factory.attributes_for(@name, :attr => 'value').should == 'result'
+  end
+
+  it "should use Proxy::Build for Factory.build" do
+    mock(@factory).run(Factory::Proxy::Build, :attr => 'value') { 'result' }
+    Factory.build(@name, :attr => 'value').should == 'result'
+  end
+
+  it "should use Proxy::Create for Factory.create" do
+    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+    Factory.create(@name, :attr => 'value').should == 'result'
+  end
+
+  it "should use Proxy::Stub for Factory.stub" do
+    mock(@factory).run(Factory::Proxy::Stub, :attr => 'value') { 'result' }
+    Factory.stub(@name, :attr => 'value').should == 'result'
+  end
+
+  it "should use default strategy option as Factory.default_strategy" do
+    stub(@factory).default_strategy { :create }
+    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+    Factory.default_strategy(@name, :attr => 'value').should == 'result'
+  end
+
+  it "should use the default strategy for the global Factory method" do
+    stub(@factory).default_strategy { :create }
+    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+    Factory(@name, :attr => 'value').should == 'result'
+  end
+
+  [:build, :create, :attributes_for, :stub].each do |method|
+    it "should raise an ArgumentError on #{method} with a nonexistant factory" do
+      lambda { Factory.send(method, :bogus) }.should raise_error(ArgumentError)
+    end
+
+    it "should recognize either 'name' or :name for Factory.#{method}" do
+      stub(@factory).run
+      lambda { Factory.send(method, @name.to_s) }.should_not raise_error
+      lambda { Factory.send(method, @name.to_sym) }.should_not raise_error
+    end
+  end
 end
 
 describe "finding definitions" do

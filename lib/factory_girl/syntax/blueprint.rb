@@ -26,8 +26,9 @@ module FactoryGirl
         module ClassMethods #:nodoc:
 
           def blueprint(&block)
-            instance = Factory.new(name.underscore, :class => self)
-            instance.instance_eval(&block)
+            proxy = Factory::Syntax::Default::DefinitionProxy.new
+            proxy.instance_eval(&block)
+            instance = Factory.new(name.underscore, proxy.attributes, :class => self)
             Factory.factories[instance.factory_name] = instance
           end
 

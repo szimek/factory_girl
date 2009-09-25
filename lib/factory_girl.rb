@@ -14,6 +14,12 @@ require 'factory_girl/sequence'
 require 'factory_girl/aliases'
 require 'factory_girl/syntax/default'
 
+module FactoryGirl
+  # Raised when a factory is defined that attempts to instantiate itself.
+  class AssociationDefinitionError < RuntimeError
+  end
+end
+
 include FactoryGirl
 
 # Shortcut for Factory.default_strategy.
