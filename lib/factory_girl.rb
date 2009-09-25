@@ -12,6 +12,7 @@ require 'factory_girl/attribute/dynamic'
 require 'factory_girl/attribute/association'
 require 'factory_girl/sequence'
 require 'factory_girl/aliases'
+require 'factory_girl/syntax/default'
 
 include FactoryGirl
 
