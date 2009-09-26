@@ -40,22 +40,28 @@ module FactoryGirl
         module ClassMethods #:nodoc:
 
           def generate(overrides = {}, &block)
-            instance = Factory.build(name.underscore, overrides)
+            instance = factory_girl_factory.run(:build, overrides)
             instance.save
             yield(instance) if block_given?
             instance
           end
 
           def generate!(overrides = {}, &block)
-            instance = Factory.create(name.underscore, overrides)
+            instance = factory_girl_factory.run(:create, overrides)
             yield(instance) if block_given?
             instance
           end
 
           def spawn(overrides = {}, &block)
-            instance = Factory.build(name.underscore, overrides)
+            instance = factory_girl_factory.run(:build, overrides)
             yield(instance) if block_given?
             instance
+          end
+
+          private
+
+          def factory_girl_factory
+            FactoryGirl::Factory.factory_by_name(name.underscore)
           end
 
         end
@@ -65,4 +71,4 @@ module FactoryGirl
   end
 end
 
-ActiveRecord::Base.send(:include, Factory::Syntax::Generate::ActiveRecord)
+ActiveRecord::Base.send(:include, FactoryGirl::Syntax::Generate::ActiveRecord)

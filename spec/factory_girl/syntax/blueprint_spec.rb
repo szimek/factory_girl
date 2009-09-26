@@ -13,8 +13,8 @@ describe "a blueprint" do
   end
 
   after do
-    Factory.factories.clear
-    Factory.sequences.clear
+    FactoryGirl::Factory.factories.clear
+    FactoryGirl::Sequence.sequences.clear
   end
 
   describe "after making an instance" do

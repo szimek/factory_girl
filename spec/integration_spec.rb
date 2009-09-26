@@ -37,7 +37,7 @@ describe "integration" do
   end
 
   after do
-    Factory.factories.clear
+    FactoryGirl::Factory.factories.clear
   end
 
   describe "a generated attributes hash" do
@@ -260,6 +260,6 @@ describe "integration" do
   it "should raise Factory::SequenceAbuseError" do
     lambda {
       Factory(:sequence_abuser)
-    }.should raise_error(Factory::SequenceAbuseError)
+    }.should raise_error(FactoryGirl::SequenceAbuseError)
   end
 end

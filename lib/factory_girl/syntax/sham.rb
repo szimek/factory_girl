@@ -24,9 +24,14 @@ module FactoryGirl
       module Sham #:nodoc:
         def self.method_missing(name, &block)
           if block_given?
-            Factory.sequence(name, &block)
+            FactoryGirl::Sequence.sequences[name] = Sequence.new(&block)
           else
-            Factory.next(name)
+            # TODO: move this into another class
+            unless FactoryGirl::Sequence.sequences.key?(name)
+              raise "No such sequence: #{name}"
+            end
+
+            FactoryGirl::Sequence.sequences[name].next
           end
         end
 
@@ -39,4 +44,4 @@ module FactoryGirl
   end
 end
 
-include Factory::Syntax::Sham
+include FactoryGirl::Syntax::Sham

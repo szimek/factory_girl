@@ -20,8 +20,6 @@ module FactoryGirl
   end
 end
 
-include FactoryGirl
-
 # Shortcut for Factory.default_strategy.
 #
 # Example:

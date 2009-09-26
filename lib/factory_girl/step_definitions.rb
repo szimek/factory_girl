@@ -2,7 +2,7 @@ module FactoryGirlStepHelpers
   def convert_association_string_to_instance(factory_name, assignment)
     attribute, value = assignment.split(':', 2)
     attributes = convert_human_hash_to_attribute_hash(attribute => value.strip)
-    factory = Factory.factory_by_name(factory_name)
+    factory = FactoryGirl::Factory.factory_by_name(factory_name)
     model_class = factory.build_class
     model_class.find(:first, :conditions => attributes) or
       Factory(factory_name, attributes)
@@ -21,7 +21,7 @@ end
 
 World(FactoryGirlStepHelpers)
 
-Factory.factories.values.each do |factory|
+FactoryGirl::Factory.factories.values.each do |factory|
   # TODO: support irregular pluralizations
   Given /^the following #{factory.human_name}s? exists?:$/ do |table|
     table.hashes.each do |human_hash|

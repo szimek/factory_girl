@@ -12,7 +12,7 @@ describe "a factory using generate syntax" do
   end
 
   after do
-    Factory.factories.clear
+    FactoryGirl::Factory.factories.clear
   end
 
   it "should not raise an error when generating an invalid instance" do

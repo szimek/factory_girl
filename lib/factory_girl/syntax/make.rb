@@ -26,7 +26,8 @@ module FactoryGirl
         module ClassMethods #:nodoc:
 
           def make(overrides = {})
-            Factory.create(name.underscore, overrides)
+            factory = FactoryGirl::Factory.factory_by_name(name.underscore)
+            factory.run(:create, overrides)
           end
 
         end
@@ -36,4 +37,4 @@ module FactoryGirl
   end
 end
 
-ActiveRecord::Base.send(:include, Factory::Syntax::Make::ActiveRecord)
+ActiveRecord::Base.send(:include, FactoryGirl::Syntax::Make::ActiveRecord)

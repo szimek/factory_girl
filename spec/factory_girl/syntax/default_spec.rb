@@ -6,17 +6,17 @@ describe "defining a factory" do
     @factory = "factory"
     stub(@factory).factory_name { @name }
     @options = { :class => 'magic' }
-    stub(Factory).new { @factory }
+    stub(FactoryGirl::Factory).new { @factory }
   end
 
   after do
-    Factory.factories.clear
+    FactoryGirl::Factory.factories.clear
   end
 
   it "should create a new factory using the specified name and options" do
     attribute = 'attribute'
-    stub(Attribute::Static).new { attribute }
-    mock(Factory).new(@name, [attribute], @options) { @factory }
+    stub(FactoryGirl::Attribute::Static).new { attribute }
+    mock(FactoryGirl::Factory).new(@name, [attribute], @options) { @factory }
     Factory.define(@name, @options) {|f| f.name 'value' }
   end
 
@@ -25,28 +25,28 @@ describe "defining a factory" do
     Factory.define(@name) do |y|
       yielded = y
     end
-    yielded.should be_a(Syntax::Default::DefinitionProxy)
+    yielded.should be_a(FactoryGirl::Syntax::Default::DefinitionProxy)
   end
 
   it "should add the factory to the list of factories" do
     Factory.define(@name) {|f| }
-    @factory.should == Factory.factories[@name]
+    @factory.should == FactoryGirl::Factory.factories[@name]
   end
 
   it "should allow that factory to be found by name" do
     Factory.define(@name) {|f| }
-    Factory.factory_by_name(@name).should == @factory
+    FactoryGirl::Factory.factory_by_name(@name).should == @factory
   end
 
   it "should allow that factory to be found by name when defined with a class" do
     Factory.define(User) {|f| }
-    Factory.factory_by_name(@name).should == @factory
+    FactoryGirl::Factory.factory_by_name(@name).should == @factory
   end
 end
 
-describe Factory::Syntax::Default::DefinitionProxy do
+describe FactoryGirl::Syntax::Default::DefinitionProxy do
   before do
-    @proxy = Factory::Syntax::Default::DefinitionProxy.new
+    @proxy = FactoryGirl::Syntax::Default::DefinitionProxy.new
   end
 
   subject { @proxy }
@@ -54,7 +54,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
   it "should add a static attribute when an attribute is defined with a value" do
     attribute = 'attribute'
     stub(attribute).name { :name }
-    mock(Factory::Attribute::Static).new(:name, 'value') { attribute }
+    mock(FactoryGirl::Attribute::Static).new(:name, 'value') { attribute }
     subject.add_attribute(:name, 'value')
     subject.attributes.should include(attribute)
   end
@@ -63,7 +63,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
     attribute = 'attribute'
     stub(attribute).name { :name }
     block     = lambda {}
-    mock(Factory::Attribute::Dynamic).new(:name, block) { attribute }
+    mock(FactoryGirl::Attribute::Dynamic).new(:name, block) { attribute }
     subject.add_attribute(:name, &block)
     subject.attributes.should include(attribute)
   end
@@ -71,19 +71,19 @@ describe Factory::Syntax::Default::DefinitionProxy do
   it "should raise for an attribute with a value and a block" do
     lambda {
       subject.add_attribute(:name, 'value') {}
-    }.should raise_error(Factory::AttributeDefinitionError)
+    }.should raise_error(FactoryGirl::AttributeDefinitionError)
   end
 
   describe "adding an attribute using a in-line sequence" do
     it "should create the sequence" do
-      mock(Factory::Sequence).new
+      mock(FactoryGirl::Sequence).new
       subject.sequence(:name) {}
     end
 
     it "should add a dynamic attribute" do
       attribute = 'attribute'
       stub(attribute).name { :name }
-      mock(Factory::Attribute::Dynamic).new(:name, is_a(Proc)) { attribute }
+      mock(FactoryGirl::Attribute::Dynamic).new(:name, is_a(Proc)) { attribute }
       subject.sequence(:name) {}
       subject.attributes.should include(attribute)
     end
@@ -92,7 +92,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
   it "should add an association without a factory name or overrides" do
     name    = :user
     attr    = 'attribute'
-    mock(Factory::Attribute::Association).new(name, name, {}) { attr }
+    mock(FactoryGirl::Attribute::Association).new(name, name, {}) { attr }
     subject.association(name)
     subject.attributes.should include(attr)
   end
@@ -101,21 +101,21 @@ describe Factory::Syntax::Default::DefinitionProxy do
     name      = :user
     attr      = 'attribute'
     overrides = { :first_name => 'Ben' }
-    mock(Factory::Attribute::Association).new(name, name, overrides) { attr }
+    mock(FactoryGirl::Attribute::Association).new(name, name, overrides) { attr }
     subject.association(name, overrides)
     subject.attributes.should include(attr)
   end
 
   it "should add an association with a factory name" do
     attr = 'attribute'
-    mock(Factory::Attribute::Association).new(:author, :user, {}) { attr }
+    mock(FactoryGirl::Attribute::Association).new(:author, :user, {}) { attr }
     subject.association(:author, :factory => :user)
     subject.attributes.should include(attr)
   end
 
   it "should add an association with a factory name and overrides" do
     attr = 'attribute'
-    mock(Factory::Attribute::Association).new(:author, :user, :first_name => 'Ben') { attr }
+    mock(FactoryGirl::Attribute::Association).new(:author, :user, :first_name => 'Ben') { attr }
     subject.association(:author, :factory => :user, :first_name => 'Ben')
     subject.attributes.should include(attr)
   end
@@ -124,7 +124,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
     attribute = 'attribute'
     stub(attribute).name { :name }
     block = lambda {}
-    mock(Factory::Attribute::Static).new(:name, 'value') { attribute }
+    mock(FactoryGirl::Attribute::Static).new(:name, 'value') { attribute }
     subject.send(:name, 'value')
     subject.attributes.should include(attribute)
   end
@@ -132,7 +132,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
   it "should allow human_name as a static attribute name" do
     attribute = 'attribute'
     stub(attribute).name { :name }
-    mock(Factory::Attribute::Static).new(:human_name, 'value') { attribute}
+    mock(FactoryGirl::Attribute::Static).new(:human_name, 'value') { attribute}
     subject.human_name 'value'
   end
 
@@ -140,7 +140,7 @@ describe Factory::Syntax::Default::DefinitionProxy do
     attribute = 'attribute'
     stub(attribute).name { :name }
     block     = lambda {}
-    mock(Factory::Attribute::Dynamic).new(:human_name, block) { attribute }
+    mock(FactoryGirl::Attribute::Dynamic).new(:human_name, block) { attribute }
     subject.human_name(&block)
   end
 end
@@ -150,40 +150,40 @@ describe "after defining a factory" do
     @name    = :user
     @factory = "factory"
 
-    Factory.factories[@name] = @factory
+    FactoryGirl::Factory.factories[@name] = @factory
   end
 
-  after { Factory.factories.clear }
+  after { FactoryGirl::Factory.factories.clear }
 
-  it "should use Proxy::AttributesFor for Factory.attributes_for" do
-    mock(@factory).run(Factory::Proxy::AttributesFor, :attr => 'value') { 'result' }
+  it "should use attributes_for for Factory.attributes_for" do
+    mock(@factory).run(:attributes_for, :attr => 'value') { 'result' }
     Factory.attributes_for(@name, :attr => 'value').should == 'result'
   end
 
-  it "should use Proxy::Build for Factory.build" do
-    mock(@factory).run(Factory::Proxy::Build, :attr => 'value') { 'result' }
+  it "should use build for Factory.build" do
+    mock(@factory).run(:build, :attr => 'value') { 'result' }
     Factory.build(@name, :attr => 'value').should == 'result'
   end
 
-  it "should use Proxy::Create for Factory.create" do
-    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+  it "should use create for Factory.create" do
+    mock(@factory).run(:create, :attr => 'value') { 'result' }
     Factory.create(@name, :attr => 'value').should == 'result'
   end
 
-  it "should use Proxy::Stub for Factory.stub" do
-    mock(@factory).run(Factory::Proxy::Stub, :attr => 'value') { 'result' }
+  it "should use stub for Factory.stub" do
+    mock(@factory).run(:stub, :attr => 'value') { 'result' }
     Factory.stub(@name, :attr => 'value').should == 'result'
   end
 
   it "should use default strategy option as Factory.default_strategy" do
     stub(@factory).default_strategy { :create }
-    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+    mock(@factory).run(:create, :attr => 'value') { 'result' }
     Factory.default_strategy(@name, :attr => 'value').should == 'result'
   end
 
   it "should use the default strategy for the global Factory method" do
     stub(@factory).default_strategy { :create }
-    mock(@factory).run(Factory::Proxy::Create, :attr => 'value') { 'result' }
+    mock(@factory).run(:create, :attr => 'value') { 'result' }
     Factory(@name, :attr => 'value').should == 'result'
   end
 
@@ -275,5 +275,18 @@ describe "finding definitions" do
       it { should require_definitions_from("#{dir}/factories/post_factory.rb") }
       it { should require_definitions_from("#{dir}/factories/person_factory.rb") }
     end
+  end
+end
+
+describe "default syntax" do
+  it "should delegate to Alias when defining aliases" do
+    stub(FactoryGirl::Alias).alias
+    Factory.alias(/(.*)_suffix/, '\1')
+    FactoryGirl::Alias.should have_received.alias(/(.*)_suffix/, '\1')
+  end
+
+  it "should return a hash of factories" do
+    stub(FactoryGirl::Factory).factories { 'result' }
+    Factory.factories.should == 'result'
   end
 end

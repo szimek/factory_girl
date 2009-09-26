@@ -33,12 +33,12 @@ module FactoryGirl
         @stub.send(:"#{attribute}=", value)
       end
 
-      def associate(name, factory, attributes)
-        set(name, Factory.stub(factory, attributes))
+      def associate(name, factory_name, attributes)
+        set(name, association(factory_name))
       end
 
       def association(factory, overrides = {})
-        Factory.stub(factory, overrides)
+        FactoryGirl::Factory.factory_by_name(factory).run(:stub, overrides)
       end
 
       def result

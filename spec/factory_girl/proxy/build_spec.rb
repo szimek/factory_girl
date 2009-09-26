@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe Factory::Proxy::Build do
+describe FactoryGirl::Proxy::Build do
   before do
     @class       = Class.new
     @instance    = "built-instance"
@@ -8,11 +8,13 @@ describe Factory::Proxy::Build do
 
     stub(@class).new { @instance }
     stub(@instance).attribute { 'value' }
-    stub(Factory).create { @association }
+    @user_factory = 'a factory'
+    stub(@user_factory).run { @association }
     stub(@instance, :attribute=)
     stub(@instance, :owner=)
 
-    @proxy = Factory::Proxy::Build.new(@class)
+    @proxy = FactoryGirl::Proxy::Build.new(@class)
+    stub(FactoryGirl::Factory).factory_by_name(:user) { @user_factory }
   end
 
   it "should instantiate the class" do
@@ -25,7 +27,7 @@ describe Factory::Proxy::Build do
     end
 
     it "should create the associated instance" do
-      Factory.should have_received.create(:user, {})
+      @user_factory.should have_received.run(:create, {})
     end
 
     it "should set the associated instance" do
@@ -36,9 +38,11 @@ describe Factory::Proxy::Build do
   it "should call Factory.create when building an association" do
     association = 'association'
     attribs     = { :first_name => 'Billy' }
-    stub(Factory).create { association }
+    factory     = 'a factory'
+    stub(factory).run { association }
+    stub(FactoryGirl::Factory).factory_by_name(:user) { factory }
     @proxy.association(:user, attribs).should == association
-    Factory.should have_received.create(:user, attribs)
+    factory.should have_received.run(:create, attribs)
   end
 
   it "should return the built instance when asked for the result" do

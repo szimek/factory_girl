@@ -1,6 +1,6 @@
 module FactoryGirl
 
-  class Factory
+  class Alias
 
     class << self
       attr_accessor :aliases #:nodoc:
@@ -21,7 +21,7 @@ module FactoryGirl
     #   be substituded like with +String#sub+.
     #
     # Example:
-    #   
+    #
     #   Factory.alias /(.*)_confirmation/, '\1'
     #
     # factory_girl starts with aliases for foreign keys, so that a :user

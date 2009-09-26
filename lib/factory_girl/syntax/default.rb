@@ -113,135 +113,182 @@ module FactoryGirl
         end
 
       end
-    end
-  end
 
-  class Factory
+      module Factory
 
-    # Defines a new factory that can be used by the build strategies (create and
-    # build) to build new objects.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   A unique name used to identify this factory.
-    # * options: +Hash+
-    #
-    # Options:
-    # * class: +Symbol+, +Class+, or +String+
-    #   The class that will be used when generating instances for this factory. If not specified, the class will be guessed from the factory name.
-    # * parent: +Symbol+
-    #   The parent factory. If specified, the attributes from the parent
-    #   factory will be copied to the current one with an ability to override
-    #   them.
-    # * default_strategy: +Symbol+
-    #   The strategy that will be used by the Factory shortcut method.
-    #   Defaults to :create.
-    #
-    # Yields: +Factory+
-    # The newly created factory.
-    def self.define(name, options = {})
-      proxy = Syntax::Default::DefinitionProxy.new
-      yield(proxy)
-      instance = Factory.new(name, proxy.attributes, options)
-      self.factories[instance.factory_name] = instance
-    end
+        # Defines a new factory that can be used by the build strategies (create and
+        # build) to build new objects.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   A unique name used to identify this factory.
+        # * options: +Hash+
+        #
+        # Options:
+        # * class: +Symbol+, +Class+, or +String+
+        #   The class that will be used when generating instances for this factory. If not specified, the class will be guessed from the factory name.
+        # * parent: +Symbol+
+        #   The parent factory. If specified, the attributes from the parent
+        #   factory will be copied to the current one with an ability to override
+        #   them.
+        # * default_strategy: +Symbol+
+        #   The strategy that will be used by the Factory shortcut method.
+        #   Defaults to :create.
+        #
+        # Yields: +Factory+
+        # The newly created factory.
+        def self.define(name, options = {})
+          proxy = Syntax::Default::DefinitionProxy.new
+          yield(proxy)
+          instance = FactoryGirl::Factory.new(name, proxy.attributes, options)
+          FactoryGirl::Factory.factories[instance.factory_name] = instance
+        end
 
-    # Generates and returns a Hash of attributes from this factory. Attributes
-    # can be individually overridden by passing in a Hash of attribute => value
-    # pairs.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   The name of the factory that should be used.
-    # * overrides: +Hash+
-    #   Attributes to overwrite for this set.
-    #
-    # Returns: +Hash+
-    # A set of attributes that can be used to build an instance of the class
-    # this factory generates.
-    def self.attributes_for(name, overrides = {})
-      factory_by_name(name).run(Proxy::AttributesFor, overrides)
-    end
+        # Generates and returns a Hash of attributes from this factory. Attributes
+        # can be individually overridden by passing in a Hash of attribute => value
+        # pairs.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   The name of the factory that should be used.
+        # * overrides: +Hash+
+        #   Attributes to overwrite for this set.
+        #
+        # Returns: +Hash+
+        # A set of attributes that can be used to build an instance of the class
+        # this factory generates.
+        def self.attributes_for(name, overrides = {})
+          FactoryGirl::Factory.factory_by_name(name).run(:attributes_for, overrides)
+        end
 
-    # Generates and returns an instance from this factory. Attributes can be
-    # individually overridden by passing in a Hash of attribute => value pairs.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   The name of the factory that should be used.
-    # * overrides: +Hash+
-    #   Attributes to overwrite for this instance.
-    #
-    # Returns: +Object+
-    # An instance of the class this factory generates, with generated attributes
-    # assigned.
-    def self.build(name, overrides = {})
-      factory_by_name(name).run(Proxy::Build, overrides)
-    end
+        # Generates and returns an instance from this factory. Attributes can be
+        # individually overridden by passing in a Hash of attribute => value pairs.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   The name of the factory that should be used.
+        # * overrides: +Hash+
+        #   Attributes to overwrite for this instance.
+        #
+        # Returns: +Object+
+        # An instance of the class this factory generates, with generated attributes
+        # assigned.
+        def self.build(name, overrides = {})
+          FactoryGirl::Factory.factory_by_name(name).run(:build, overrides)
+        end
 
-    # Generates, saves, and returns an instance from this factory. Attributes can
-    # be individually overridden by passing in a Hash of attribute => value
-    # pairs.
-    #
-    # Instances are saved using the +save!+ method, so ActiveRecord models will
-    # raise ActiveRecord::RecordInvalid exceptions for invalid attribute sets.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   The name of the factory that should be used.
-    # * overrides: +Hash+
-    #   Attributes to overwrite for this instance.
-    #
-    # Returns: +Object+
-    # A saved instance of the class this factory generates, with generated
-    # attributes assigned.
-    def self.create(name, overrides = {})
-      factory_by_name(name).run(Proxy::Create, overrides)
-    end
+        # Generates, saves, and returns an instance from this factory. Attributes can
+        # be individually overridden by passing in a Hash of attribute => value
+        # pairs.
+        #
+        # Instances are saved using the +save!+ method, so ActiveRecord models will
+        # raise ActiveRecord::RecordInvalid exceptions for invalid attribute sets.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   The name of the factory that should be used.
+        # * overrides: +Hash+
+        #   Attributes to overwrite for this instance.
+        #
+        # Returns: +Object+
+        # A saved instance of the class this factory generates, with generated
+        # attributes assigned.
+        def self.create(name, overrides = {})
+          FactoryGirl::Factory.factory_by_name(name).run(:create, overrides)
+        end
 
-    # Generates and returns an object with all attributes from this factory
-    # stubbed out. Attributes can be individually overridden by passing in a Hash
-    # of attribute => value pairs.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   The name of the factory that should be used.
-    # * overrides: +Hash+
-    #   Attributes to overwrite for this instance.
-    #
-    # Returns: +Object+
-    # An object with generated attributes stubbed out.
-    def self.stub(name, overrides = {})
-      factory_by_name(name).run(Proxy::Stub, overrides)
-    end
+        # Generates and returns an object with all attributes from this factory
+        # stubbed out. Attributes can be individually overridden by passing in a Hash
+        # of attribute => value pairs.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   The name of the factory that should be used.
+        # * overrides: +Hash+
+        #   Attributes to overwrite for this instance.
+        #
+        # Returns: +Object+
+        # An object with generated attributes stubbed out.
+        def self.stub(name, overrides = {})
+          FactoryGirl::Factory.factory_by_name(name).run(:stub, overrides)
+        end
 
-    # Executes the default strategy for the given factory. This is usually create,
-    # but it can be overridden for each factory.
-    #
-    # Arguments:
-    # * name: +Symbol+ or +String+
-    #   The name of the factory that should be used.
-    # * overrides: +Hash+
-    #   Attributes to overwrite for this instance.
-    #
-    # Returns: +Object+
-    # The result of the default strategy.
-    def self.default_strategy(name, overrides = {})
-      self.send(factory_by_name(name).default_strategy, name, overrides)
-    end
+        # Executes the default strategy for the given factory. This is usually create,
+        # but it can be overridden for each factory.
+        #
+        # Arguments:
+        # * name: +Symbol+ or +String+
+        #   The name of the factory that should be used.
+        # * overrides: +Hash+
+        #   Attributes to overwrite for this instance.
+        #
+        # Returns: +Object+
+        # The result of the default strategy.
+        def self.default_strategy(name, overrides = {})
+          factory = FactoryGirl::Factory.factory_by_name(name)
+          self.send(factory.default_strategy, name, overrides)
+        end
 
-    def self.find_definitions #:nodoc:
-      definition_file_paths.each do |path|
-        require("#{path}.rb") if File.exists?("#{path}.rb")
+        def self.find_definitions #:nodoc:
+          FactoryGirl::Factory.definition_file_paths.each do |path|
+            require("#{path}.rb") if File.exists?("#{path}.rb")
 
-        if File.directory? path
-          Dir[File.join(path, '*.rb')].each do |file|
-            require file
+            if File.directory? path
+              Dir[File.join(path, '*.rb')].each do |file|
+                require file
+              end
+            end
           end
         end
-      end
-    end
 
+        # Defines a new sequence that can be used to generate unique values in a specific format.
+        #
+        # Arguments:
+        #   name: (Symbol)
+        #     A unique name for this sequence. This name will be referenced when
+        #     calling next to generate new values from this sequence.
+        #   block: (Proc)
+        #     The code to generate each value in the sequence. This block will be
+        #     called with a unique number each time a value in the sequence is to be
+        #     generated. The block should return the generated value for the
+        #     sequence.
+        #
+        # Example:
+        #   
+        #   Factory.sequence(:email) {|n| "somebody_#{n}@example.com" }
+        def self.sequence (name, &block)
+          FactoryGirl::Sequence.sequences[name] = Sequence.new(&block)
+        end
+
+        # Generates and returns the next value in a sequence.
+        #
+        # Arguments:
+        #   name: (Symbol)
+        #     The name of the sequence that a value should be generated for.
+        #
+        # Returns:
+        #   The next value in the sequence. (Object)
+        def self.next (sequence)
+          unless FactoryGirl::Sequence.sequences.key?(sequence)
+            raise "No such sequence: #{sequence}"
+          end
+
+          FactoryGirl::Sequence.sequences[sequence].next
+        end
+
+        def self.alias(pattern, replace)
+          Alias.alias(pattern, replace)
+        end
+
+        def self.factories
+          FactoryGirl::Factory.factories
+        end
+
+      end
+
+    end
   end
 
 end
+
+include FactoryGirl::Syntax::Default

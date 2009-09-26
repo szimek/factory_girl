@@ -26,7 +26,7 @@ module FactoryGirl
         module ClassMethods #:nodoc:
 
           def blueprint(&block)
-            proxy = Factory::Syntax::Default::DefinitionProxy.new
+            proxy = Syntax::Default::DefinitionProxy.new
             proxy.instance_eval(&block)
             instance = Factory.new(name.underscore, proxy.attributes, :class => self)
             Factory.factories[instance.factory_name] = instance
@@ -39,5 +39,5 @@ module FactoryGirl
   end
 end
 
-ActiveRecord::Base.send(:include, Factory::Syntax::Blueprint::ActiveRecord)
+ActiveRecord::Base.send(:include, FactoryGirl::Syntax::Blueprint::ActiveRecord)
 

@@ -1,27 +1,27 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
 
-describe Factory, "aliases" do
+describe "aliases" do
 
   it "should include an attribute as an alias for itself by default" do
-    Factory.aliases_for(:test).should include(:test)
+    FactoryGirl::Alias.aliases_for(:test).should include(:test)
   end
 
   it "should include the root of a foreign key as an alias by default" do
-    Factory.aliases_for(:test_id).should include(:test)
+    FactoryGirl::Alias.aliases_for(:test_id).should include(:test)
   end
 
   it "should include an attribute's foreign key as an alias by default" do
-    Factory.aliases_for(:test).should include(:test_id)
+    FactoryGirl::Alias.aliases_for(:test).should include(:test_id)
   end
 
   describe "after adding an alias" do
 
     before do
-      Factory.alias(/(.*)_suffix/, '\1')
+      FactoryGirl::Alias.alias(/(.*)_suffix/, '\1')
     end
 
     it "should return the alias in the aliases list" do
-      Factory.aliases_for(:test_suffix).should include(:test)
+      FactoryGirl::Alias.aliases_for(:test_suffix).should include(:test)
     end
 
   end

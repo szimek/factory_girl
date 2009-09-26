@@ -1,13 +1,13 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe Factory::Proxy::AttributesFor do
+describe FactoryGirl::Proxy::AttributesFor do
   before do
-    @proxy = Factory::Proxy::AttributesFor.new(@class)
+    @proxy = FactoryGirl::Proxy::AttributesFor.new(@class)
   end
 
   describe "when asked to associate with another factory" do
     before do
-      stub(Factory).create
+      stub(FactoryGirl::Factory).create
       @proxy.associate(:owner, :user, {})
     end
 

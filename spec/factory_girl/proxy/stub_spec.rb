@@ -1,6 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'spec_helper'))
 
-describe Factory::Proxy::Stub do
+describe FactoryGirl::Proxy::Stub do
   before do
     @class = "class"
     @instance = "instance"
@@ -9,7 +9,7 @@ describe Factory::Proxy::Stub do
     stub(@instance).id { 42 }
     stub(@instance).reload { @instance.connection.reload }
 
-    @stub = Factory::Proxy::Stub.new(@class)
+    @stub = FactoryGirl::Proxy::Stub.new(@class)
   end
 
   it "should not be a new record" do
@@ -23,13 +23,15 @@ describe Factory::Proxy::Stub do
   describe "when a user factory exists" do
     before do
       @user = "user"
-      stub(Factory).stub(:user, {}) { @user }
+      @user_factory = 'user factory'
+      stub(@user_factory).run(:stub, {}) { @user }
+      FactoryGirl::Factory.factories[:user] = @user_factory
     end
 
     describe "when asked to associate with another factory" do
       before do
         stub(@instance).owner { @user }
-        mock(Factory).stub(:user, {}) { @user }
+        mock(@user_factory).run(:stub, {}) { @user }
         mock(@stub).set(:owner, @user)
 
         @stub.associate(:owner, :user, {})
@@ -41,7 +43,7 @@ describe Factory::Proxy::Stub do
     end
 
     it "should return the association when building one" do
-      mock(Factory).create.never
+      mock(@user_factory).run(:create, {}).never
       @stub.association(:user).should == @user
     end
 

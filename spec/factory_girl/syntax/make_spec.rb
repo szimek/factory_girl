@@ -12,7 +12,7 @@ describe "a factory using make syntax" do
   end
 
   after do
-    Factory.factories.clear
+    FactoryGirl::Factory.factories.clear
   end
 
   describe "after making an instance" do

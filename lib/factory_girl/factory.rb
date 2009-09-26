@@ -36,7 +36,7 @@ module FactoryGirl
       @options      = options
       @attributes   = attributes
       if parent = options.delete(:parent)
-        inherit_from(Factory.factory_by_name(parent))
+        inherit_from(self.class.factory_by_name(parent))
       end
 
       attribute_names = attributes.collect {|attribute| attribute.name }
@@ -54,11 +54,12 @@ module FactoryGirl
       end
     end
 
-    def run(proxy_class, overrides) #:nodoc:
+    def run(strategy, overrides) #:nodoc:
+      proxy_class = Proxy.const_get(variable_name_to_class_name(strategy))
       proxy = proxy_class.new(build_class)
       overrides = symbolize_keys(overrides)
       overrides.each {|attr, val| proxy.set(attr, val) }
-      passed_keys = overrides.keys.collect {|k| Factory.aliases_for(k) }.flatten
+      passed_keys = overrides.keys.collect {|k| Alias.aliases_for(k) }.flatten
       @attributes.each do |attribute|
         unless passed_keys.include?(attribute.name)
           attribute.add_to(proxy)
@@ -114,7 +115,7 @@ module FactoryGirl
     end
 
     def assert_valid_strategy(strategy)
-      unless Factory::Proxy.const_defined? variable_name_to_class_name(strategy)
+      unless Proxy.const_defined? variable_name_to_class_name(strategy)
         raise ArgumentError, "Unknown strategy: #{strategy}"
       end
     end

@@ -9,7 +9,7 @@ module FactoryGirl
 
       def add_to(proxy)
         value = @block.arity.zero? ? @block.call : @block.call(proxy)
-        if Factory::Sequence === value
+        if Sequence === value
           raise SequenceAbuseError
         end
         proxy.set(name, value)

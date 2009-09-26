@@ -13,12 +13,12 @@ module FactoryGirl
         @instance.send(:"#{attribute}=", value)
       end
 
-      def associate(name, factory, attributes)
-        set(name, Factory.create(factory, attributes))
+      def associate(name, factory_name, overrides)
+        set(name, association(factory_name, overrides))
       end
 
-      def association(factory, overrides = {})
-        Factory.create(factory, overrides)
+      def association(factory_name, overrides = {})
+        FactoryGirl::Factory.factory_by_name(factory_name).run(:create, overrides)
       end
 
       def result
