@@ -137,11 +137,58 @@ module FactoryGirl
         #
         # Yields: +Factory+
         # The newly created factory.
-        def self.define(name, options = {})
+        def self.define(name_or_class, options = {})
+          name = factory_name_for(name_or_class)
           proxy = Syntax::Default::DefinitionProxy.new
           yield(proxy)
-          instance = FactoryGirl::Factory.new(name, proxy.attributes, options)
-          FactoryGirl::Factory.factories[instance.factory_name] = instance
+          parent_build_class =
+            if options[:parent]
+              FactoryGirl::Factory.factory_by_name(options[:parent]).build_class
+            else
+              nil
+            end
+          build_class = class_for(options[:class] ||
+                                  parent_build_class ||
+                                  name_or_class)
+          instance = FactoryGirl::Factory.new(build_class, proxy.attributes, options)
+          instance.ensure_not_associated_with(name)
+          FactoryGirl::Factory.factories[name] = instance
+        end
+
+        # TODO: move this into an inflector module
+        def self.class_for(class_or_to_s)
+          if class_or_to_s.respond_to?(:to_sym)
+            Object.const_get(variable_name_to_class_name(class_or_to_s))
+          else
+            class_or_to_s
+          end
+        end
+
+        # TODO: move this into an inflector module
+        def self.factory_name_for(class_or_to_s)
+          if class_or_to_s.respond_to?(:to_sym)
+            class_or_to_s.to_sym
+          else
+            class_name_to_variable_name(class_or_to_s).to_sym
+          end
+        end
+
+        # Based on ActiveSupport's camelize inflector
+        # TODO: move this into an inflector module
+        def self.variable_name_to_class_name(name)
+          name.to_s.
+            gsub(/\/(.?)/) { "::#{$1.upcase}" }.
+            gsub(/(?:^|_)(.)/) { $1.upcase }
+        end
+
+        # Based on ActiveSupport's underscore inflector
+        # TODO: move this into an inflector module
+        def self.class_name_to_variable_name(name)
+          name.to_s.gsub(/::/, '/').
+            gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+            gsub(/([a-z\d])([A-Z])/,'\1_\2').
+            tr("-", "_").
+            downcase
         end
 
         # Generates and returns a Hash of attributes from this factory. Attributes

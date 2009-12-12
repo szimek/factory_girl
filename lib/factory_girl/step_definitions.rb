@@ -21,32 +21,32 @@ end
 
 World(FactoryGirlStepHelpers)
 
-FactoryGirl::Factory.factories.values.each do |factory|
-  # TODO: support irregular pluralizations
-  Given /^the following #{factory.human_name}s? exists?:$/ do |table|
+FactoryGirl::Factory.factories.each do |name, factory|
+  human_name = name.to_s.humanize.downcase
+  Given /^the following (?:#{human_name}|#{human_name.pluralize}) exists?:$/ do |table|
     table.hashes.each do |human_hash|
       attributes = convert_human_hash_to_attribute_hash(human_hash, factory.associations)
-      Factory.create(factory.factory_name, attributes)
+      Factory.create(name, attributes)
     end
   end
 
-  Given /^an? #{factory.human_name} exists$/ do
-    Factory(factory.factory_name)
+  Given /^an? #{human_name} exists$/ do
+    Factory(name)
   end
 
-  Given /^(\d+) #{factory.human_name}s exist$/ do |count|
-    count.to_i.times { Factory(factory.human_name) }
+  Given /^(\d+) #{human_name.pluralize} exist$/ do |count|
+    count.to_i.times { Factory(name) }
   end
 
   if factory.build_class.respond_to?(:columns)
     factory.build_class.columns.each do |column|
       human_column_name = column.name.downcase.gsub('_', ' ')
-      Given /^an? #{factory.human_name} exists with an? #{human_column_name} of "([^"]*)"$/i do |value|
-        Factory(factory.factory_name, column.name => value)
+      Given /^an? #{human_name} exists with an? #{human_column_name} of "([^"]*)"$/i do |value|
+        Factory(name, column.name => value)
       end
 
-      Given /^(\d+) #{factory.human_name}s exist with an? #{human_column_name} of "([^"]*)"$/i do |count, value|
-        count.to_i.times { Factory(factory.factory_name, column.name => value) }
+      Given /^(\d+) #{human_name.pluralize} exist with an? #{human_column_name} of "([^"]*)"$/i do |count, value|
+        count.to_i.times { Factory(name, column.name => value) }
       end
     end
   end

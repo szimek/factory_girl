@@ -15,26 +15,18 @@ module FactoryGirl
     self.factories = {}
     self.definition_file_paths = %w(factories test/factories spec/factories)
 
-    attr_reader :factory_name #:nodoc:
     attr_reader :attributes #:nodoc:
-
-    def class_name #:nodoc:
-      @options[:class] || factory_name
-    end
-
-    def build_class #:nodoc:
-      @build_class ||= class_for(class_name)
-    end
+    attr_reader :build_class #:nodoc:
 
     def default_strategy #:nodoc:
       @options[:default_strategy] || :create
     end
 
-    def initialize(name, attributes, options = {}) #:nodoc:
+    def initialize(build_class, attributes, options = {}) #:nodoc:
       assert_valid_options(options)
-      @factory_name = factory_name_for(name)
       @options      = options
       @attributes   = attributes
+      @build_class  = build_class
       if parent = options.delete(:parent)
         inherit_from(self.class.factory_by_name(parent))
       end
@@ -46,7 +38,6 @@ module FactoryGirl
     end
 
     def inherit_from(parent) #:nodoc:
-      @options[:class] ||= parent.class_name
       parent.attributes.each do |attribute|
         unless attribute_defined?(attribute.name)
           @attributes << attribute.clone
@@ -72,34 +63,21 @@ module FactoryGirl
       factories[name.to_sym] or raise ArgumentError.new("No such factory: #{name.to_s}")
     end
 
-    def human_name(*args, &block)
-      if args.size == 0 && block.nil?
-        factory_name.to_s.gsub('_', ' ')
-      else
-        add_attribute(:human_name, *args, &block)
-      end
-    end
-
     def associations
       attributes.select {|attribute| attribute.is_a?(Attribute::Association) }
     end
 
-    private
-
-    def class_for(class_or_to_s)
-      if class_or_to_s.respond_to?(:to_sym)
-        Object.const_get(variable_name_to_class_name(class_or_to_s))
-      else
-        class_or_to_s
+    def ensure_not_associated_with(factory)
+      if associations.any? { |association| association.factory == factory }
+        raise FactoryGirl::AssociationDefinitionError,
+              "can't associate with #{factory}"
       end
     end
 
-    def factory_name_for(class_or_to_s)
-      if class_or_to_s.respond_to?(:to_sym)
-        class_or_to_s.to_sym
-      else
-        class_name_to_variable_name(class_or_to_s).to_sym
-      end
+    private
+
+    def custom_class?
+      @options.key?(:class)
     end
 
     def attribute_defined?(name)
@@ -121,6 +99,7 @@ module FactoryGirl
     end
 
     # Based on ActiveSupport's underscore inflector
+    # TODO: move this into an inflector module
     def class_name_to_variable_name(name)
       name.to_s.gsub(/::/, '/').
         gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
@@ -130,6 +109,7 @@ module FactoryGirl
     end
 
     # Based on ActiveSupport's camelize inflector
+    # TODO: move this into an inflector module
     def variable_name_to_class_name(name)
       name.to_s.
         gsub(/\/(.?)/) { "::#{$1.upcase}" }.

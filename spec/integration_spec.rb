@@ -36,10 +36,6 @@ describe "integration" do
     end
   end
 
-  after do
-    FactoryGirl::Factory.factories.clear
-  end
-
   describe "a generated attributes hash" do
 
     before do

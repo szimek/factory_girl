@@ -2,45 +2,41 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 
 describe "defining a factory" do
   before do
-    @name    = :user
-    @factory = "factory"
-    stub(@factory).factory_name { @name }
-    @options = { :class => 'magic' }
-    stub(FactoryGirl::Factory).new { @factory }
-  end
-
-  after do
-    FactoryGirl::Factory.factories.clear
+    @factory = generate_factory
+    # stub(FactoryGirl::Factory).new { @factory }
   end
 
   it "should create a new factory using the specified name and options" do
-    attribute = 'attribute'
+    attribute = generate_attribute
     stub(FactoryGirl::Attribute::Static).new { attribute }
-    mock(FactoryGirl::Factory).new(@name, [attribute], @options) { @factory }
-    Factory.define(@name, @options) {|f| f.name 'value' }
+    lambda {
+      Factory.define(:user, :class => :post) {|f| f.name 'value' }
+    }.should register_factory(:name        => :user,
+                              :build_class => Post,
+                              :attributes  => [attribute])
   end
 
   it "should pass a definition proxy to the block" do
     yielded = nil
-    Factory.define(@name) do |y|
+    Factory.define(:user) do |y|
       yielded = y
     end
     yielded.should be_a(FactoryGirl::Syntax::Default::DefinitionProxy)
   end
 
   it "should add the factory to the list of factories" do
-    Factory.define(@name) {|f| }
-    @factory.should == FactoryGirl::Factory.factories[@name]
+    factory = Factory.define(:user) {|f| }
+    FactoryGirl::Factory.factories[:user].should == factory
   end
 
   it "should allow that factory to be found by name" do
-    Factory.define(@name) {|f| }
-    FactoryGirl::Factory.factory_by_name(@name).should == @factory
+    factory = Factory.define(:user) {|f| }
+    FactoryGirl::Factory.factory_by_name(:user).should == factory
   end
 
   it "should allow that factory to be found by name when defined with a class" do
-    Factory.define(User) {|f| }
-    FactoryGirl::Factory.factory_by_name(@name).should == @factory
+    factory = Factory.define(User) {|f| }
+    FactoryGirl::Factory.factory_by_name(:user).should == factory
   end
 end
 
@@ -152,8 +148,6 @@ describe "after defining a factory" do
 
     FactoryGirl::Factory.factories[@name] = @factory
   end
-
-  after { FactoryGirl::Factory.factories.clear }
 
   it "should use attributes_for for Factory.attributes_for" do
     mock(@factory).run(:attributes_for, :attr => 'value') { 'result' }
@@ -286,7 +280,67 @@ describe "default syntax" do
   end
 
   it "should return a hash of factories" do
-    stub(FactoryGirl::Factory).factories { 'result' }
-    Factory.factories.should == 'result'
+    stub(FactoryGirl::Factory).factories { { 'test' => 'value' } }
+    Factory.factories.should == { 'test' => 'value' }
   end
+
+  it "should correctly guess the build class for a factory name ending in s" do
+    lambda { Factory.define(:business) {|f| } }.
+      should register_factory(:name => :business, :build_class => Business)
+  end
+
+  it "should convert a string name to a symbol" do
+    lambda { Factory.define('user') {|f| } }.
+      should register_factory(:name => :user, :build_class => User)
+  end
+
+  it "should guess the name from a class" do
+    lambda { Factory.define(ArgumentError) {|f| } }.
+      should register_factory(:name => :argument_error, :build_class => ArgumentError)
+  end
+
+  it "accept a custom class name" do
+    lambda { Factory.define(:author, :class => :argument_error) {|f| } }.
+      should register_factory(:name => :author, :build_class => ArgumentError)
+  end
+
+  it "should guess the build class from the factory name" do
+    lambda { Factory.define(:user) {|f| } }.
+      should register_factory(:name => :user,
+                              :build_class => User)
+  end
+
+  it "should ensure it doesn't associate with itself" do
+    lambda {
+      Factory.define(:user) do |factory|
+        factory.association :user
+      end
+    }.should raise_error(FactoryGirl::AssociationDefinitionError)
+  end
+
+end
+
+describe "with a parent factory" do
+  before do
+    @parent = generate_factory(:build_class => Object)
+    FactoryGirl::Factory.factories[:object] = @parent
+  end
+
+  it "should create a new factory using the class of the parent" do
+    lambda do
+      Factory.define(:child, :parent => :object) {|f| }
+    end.should register_factory(:build_class => Object,
+                                :parent => :object,
+                                :name   => :child)
+  end
+
+  it "should create a new factory while overriding the parent class" do
+    class Other; end
+    lambda do
+      Factory.define(:child, :parent => :object, :class => Other) {|f| }
+    end.should register_factory(:build_class => Other,
+                                :parent      => :object,
+                                :name        => :child)
+  end
+
 end

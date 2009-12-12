@@ -11,10 +11,6 @@ describe "a factory using make syntax" do
     end
   end
 
-  after do
-    FactoryGirl::Factory.factories.clear
-  end
-
   describe "after making an instance" do
     before do
       @instance = User.make(:last_name => 'Rye')

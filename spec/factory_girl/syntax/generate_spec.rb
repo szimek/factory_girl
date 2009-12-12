@@ -11,10 +11,6 @@ describe "a factory using generate syntax" do
     end
   end
 
-  after do
-    FactoryGirl::Factory.factories.clear
-  end
-
   it "should not raise an error when generating an invalid instance" do
     lambda { User.generate(:first_name => nil) }.should_not raise_error
   end
