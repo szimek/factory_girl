@@ -112,6 +112,24 @@ module FactoryGirl
           @attributes << Attribute::Association.new(name, factory_name, options)
         end
 
+        def after_build(&block)
+          callback(:after_build, &block)
+        end
+
+        def after_create(&block)
+          callback(:after_create, &block)
+        end
+
+        def after_stub(&block)
+          callback(:after_stub, &block)
+        end
+
+        def callback(name, &block)
+          unless [:after_build, :after_create, :after_stub].include?(name.to_sym)
+            raise InvalidCallbackNameError, "#{name} is not a valid callback name. Valid callback names are :after_build, :after_create, and :after_stub"
+          end
+          @attributes << Attribute::Callback.new(name.to_sym, block)
+        end
       end
 
       module Factory
@@ -152,6 +170,9 @@ module FactoryGirl
                                   name_or_class)
           instance = FactoryGirl::Factory.new(build_class, proxy.attributes, options)
           instance.ensure_not_associated_with(name)
+          if FactoryGirl::Factory.factories[name]
+            raise DuplicateDefinitionError, "Factory already defined: #{name}"
+          end
           FactoryGirl::Factory.factories[name] = instance
         end
 
@@ -301,7 +322,7 @@ module FactoryGirl
         #     sequence.
         #
         # Example:
-        #   
+        #
         #   Factory.sequence(:email) {|n| "somebody_#{n}@example.com" }
         def self.sequence (name, &block)
           FactoryGirl::Sequence.sequences[name] = Sequence.new(&block)

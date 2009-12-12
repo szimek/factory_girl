@@ -47,8 +47,18 @@ describe FactoryGirl::Proxy::Stub do
       @stub.association(:user).should == @user
     end
 
-    it "should return the actual instance when asked for the result" do
-      @stub.result.should == @instance
+    describe "when asked for the result" do
+      it "should return the actual instance" do
+        @stub.result.should == @instance
+      end
+
+      it "should run the :after_stub callback" do
+        @spy = Object.new
+        stub(@spy).foo
+        @stub.add_callback(:after_stub, proc{ @spy.foo })
+        @stub.result
+        @spy.should have_received.foo
+      end
     end
   end
 

@@ -13,4 +13,8 @@ module CreationMethods
     }.merge(opts)
     FactoryGirl::Attribute::Static.new(opts[:name], 'value')
   end
+
+  def generate_callback(opts = {})
+    FactoryGirl::Attribute::Callback.new(:after_build, lambda { |factory| })
+  end
 end

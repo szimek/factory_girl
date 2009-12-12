@@ -11,6 +11,14 @@ describe FactoryGirl::Factory do
     factory.associations.size.should == 2
   end
 
+  it "should not allow the same attribute to be added twice" do
+    attributes = [generate_attribute(:name => 'name'),
+                  generate_attribute(:name => 'name')]
+    lambda {
+      generate_factory(:attributes => attributes)
+    }.should raise_error(FactoryGirl::AttributeDefinitionError)
+  end
+
   it "should have a default strategy" do
     generate_factory.default_strategy.should == :create
   end
@@ -63,6 +71,8 @@ describe FactoryGirl::Factory do
       FactoryGirl::Factory.factories[:object] = @parent
     end
 
+    after { Factory.factories.clear }
+
     it "should raise an ArgumentError when trying to use a non-existent factory as parent" do
       lambda {
         generate_factory(:parent => :nonexistent)
@@ -85,6 +95,16 @@ describe FactoryGirl::Factory do
       new_attribute = FactoryGirl::Attribute::Dynamic.new(:name, lambda { 'Child Name' })
       child = generate_factory(:attributes => [new_attribute], :parent => :object)
       child.attributes.should == [new_attribute]
+    end
+
+    it "inherit all callbacks" do
+      parent_callback = generate_callback
+      child_callback = generate_callback
+      parent = generate_factory(:attributes => [parent_callback])
+      FactoryGirl::Factory.factories[:parent] = parent
+      child = generate_factory(:parent => :parent, :attributes => [child_callback])
+
+      child.attributes.size.should == 2
     end
   end
 

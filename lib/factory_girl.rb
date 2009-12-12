@@ -10,6 +10,7 @@ require 'factory_girl/attribute'
 require 'factory_girl/attribute/static'
 require 'factory_girl/attribute/dynamic'
 require 'factory_girl/attribute/association'
+require 'factory_girl/attribute/callback'
 require 'factory_girl/sequence'
 require 'factory_girl/aliases'
 require 'factory_girl/syntax/default'
@@ -17,6 +18,14 @@ require 'factory_girl/syntax/default'
 module FactoryGirl
   # Raised when a factory is defined that attempts to instantiate itself.
   class AssociationDefinitionError < RuntimeError
+  end
+
+  # Raised when a callback is defined that has an invalid name
+  class InvalidCallbackNameError < RuntimeError
+  end
+
+  # Raised when a factory is defined with the same name as a previously-defined factory.
+  class DuplicateDefinitionError < RuntimeError
   end
 end
 

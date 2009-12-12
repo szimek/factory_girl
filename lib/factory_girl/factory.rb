@@ -31,7 +31,7 @@ module FactoryGirl
         inherit_from(self.class.factory_by_name(parent))
       end
 
-      attribute_names = attributes.collect {|attribute| attribute.name }
+      attribute_names = attributes.reject { |attribute| attribute.is_a?(Attribute::Callback) }.collect {|attribute| attribute.name }
       unless attribute_names == attribute_names.uniq
         raise AttributeDefinitionError, "Attributes defined twice"
       end
@@ -81,7 +81,7 @@ module FactoryGirl
     end
 
     def attribute_defined?(name)
-      !@attributes.detect {|attr| attr.name == name }.nil?
+      !@attributes.detect {|attr| attr.name == name && ! attr.is_a?(Attribute::Callback) }.nil?
     end
 
     def assert_valid_options(options)

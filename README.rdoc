@@ -7,7 +7,7 @@ factory_girl is a fixtures replacement with a straightforward definition syntax,
 Github: http://github.com/thoughtbot/factory_girl/tree/master
 
 Gem:
-  gem install thoughtbot-factory_girl --source http://gems.github.com
+  gem install factory_girl --source http://gemcutter.org
 
 Note: if you install factory_girl using the gem from Github, you'll need this
 in your environment.rb if you want to use Rails 2.1+'s dependency manager:
@@ -42,6 +42,8 @@ Each factory has a name and a set of attributes. The name is used to guess the c
   end
 
 It is highly recommended that you have one factory for each class that provides the simplest set of attributes necessary to create an instance of that class. If you're creating ActiveRecord objects, that means that you should only provide attributes that are required through validations and that do not have defaults. Other factories can be created through inheritance to cover common scenarios for each class.
+
+Attempting to define multiple factories with the same name will raise an error.
 
 Factories can either be defined anywhere, but will automatically be loaded if they are defined in files at the following locations:
 
@@ -191,6 +193,41 @@ a particular factory:
     f.sequence(:email) {|n| "person#{n}@example.com" }
   end
 
+== Callbacks
+
+Factory_girl makes available three callbacks for injecting some code:
+
+* after_build  - called after a factory is built   (via Factory.build)
+* after_create - called after a factory is saved   (via Factory.create)
+* after_stub   - called after a factory is stubbed (via Factory.stub)  
+
+Examples:
+
+  # Define a factory that calls the generate_hashed_password method after it is built 
+  Factory.define :user do |u|
+    u.after_build { |user| do_something_to(user) } 
+  end
+
+Note that you'll have an instance of the user in the block.  This can be useful.
+
+You can also define multiple types of callbacks on the same factory:
+
+  Factory.define :user do |u|
+    u.after_build  { |user| do_something_to(user) } 
+    u.after_create { |user| do_something_else_to(user) }
+  end
+
+Factories can also define any number of the same kind of callback.  These callbacks will be executed in the order they are specified:
+
+  Factory.define :user do |u|
+    u.after_create { this_runs_first } 
+    u.after_create { then_this } 
+  end
+
+Calling Factory.create will invoke both after_build and after_create callbacks.  
+
+Also, like standard attributes, child factories will inherit (and can define additional) callbacks from their parent factory.
+
 == Alternate Syntaxes
 
 Users' tastes for syntax vary dramatically, but most users are looking for a common feature set. Because of this, factory_girl supports "syntax layers" which provide alternate interfaces. See Factory::Syntax for information about the various layers available.
@@ -217,6 +254,7 @@ factory_girl was written by Joe Ferris with contributions from several authors, 
 * Jon Yurek
 * Josh Nichols
 * Josh Owens
+* Nate Sutton
 
 The syntax layers are derived from software written by the following authors:
 * Pete Yandell

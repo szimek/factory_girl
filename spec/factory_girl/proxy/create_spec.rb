@@ -49,6 +49,12 @@ describe FactoryGirl::Proxy::Create do
 
   describe "when asked for the result" do
     before do
+      @build_spy = Object.new
+      @create_spy = Object.new
+      stub(@build_spy).foo
+      stub(@create_spy).foo
+      @proxy.add_callback(:after_build,  proc{ @build_spy.foo })
+      @proxy.add_callback(:after_create, proc{ @create_spy.foo })
       @result = @proxy.result
     end
 
@@ -58,6 +64,11 @@ describe FactoryGirl::Proxy::Create do
 
     it "should return the built instance" do
       @result.should == @instance
+    end
+
+    it "should run both the build and the create callbacks" do
+      @build_spy.should have_received.foo
+      @create_spy.should have_received.foo
     end
   end
 

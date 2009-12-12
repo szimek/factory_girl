@@ -3,7 +3,6 @@ require File.expand_path(File.dirname(__FILE__) + '/../../spec_helper')
 describe "defining a factory" do
   before do
     @factory = generate_factory
-    # stub(FactoryGirl::Factory).new { @factory }
   end
 
   it "should create a new factory using the specified name and options" do
@@ -37,6 +36,12 @@ describe "defining a factory" do
   it "should allow that factory to be found by name when defined with a class" do
     factory = Factory.define(User) {|f| }
     FactoryGirl::Factory.factory_by_name(:user).should == factory
+  end
+
+  it "should not allow a duplicate factory definition" do
+    lambda { 
+      2.times { Factory.define(:user) {|f| } }
+    }.should raise_error(FactoryGirl::DuplicateDefinitionError)
   end
 end
 
@@ -139,6 +144,37 @@ describe FactoryGirl::Syntax::Default::DefinitionProxy do
     mock(FactoryGirl::Attribute::Dynamic).new(:human_name, block) { attribute }
     subject.human_name(&block)
   end
+
+  it "should add a callback attribute when the after_build attribute is defined" do
+    mock(FactoryGirl::Attribute::Callback).new(:after_build, is_a(Proc)) { 'after_build callback' }
+    subject.after_build {}
+    subject.attributes.should include('after_build callback')
+  end
+
+  it "should add a callback attribute when the after_create attribute is defined" do
+    mock(FactoryGirl::Attribute::Callback).new(:after_create, is_a(Proc)) { 'after_create callback' }
+    subject.after_create {}
+    subject.attributes.should include('after_create callback')
+  end
+
+  it "should add a callback attribute when the after_stub attribute is defined" do
+    mock(FactoryGirl::Attribute::Callback).new(:after_stub, is_a(Proc)) { 'after_stub callback' }
+    subject.after_stub {}
+    subject.attributes.should include('after_stub callback')
+  end
+
+  it "should add a callback attribute when defining a callback" do
+    mock(FactoryGirl::Attribute::Callback).new(:after_create, is_a(Proc)) { 'after_create callback' }
+    subject.callback(:after_create) {}
+    subject.attributes.should include('after_create callback')
+  end
+
+  it "should raise an InvalidCallbackNameError when defining a callback with an invalid name" do
+    lambda{
+      subject.callback(:invalid_callback_name) {}
+    }.should raise_error(FactoryGirl::InvalidCallbackNameError)
+  end
+
 end
 
 describe "after defining a factory" do
