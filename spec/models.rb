@@ -1,3 +1,5 @@
+require 'active_record'
+
 ActiveRecord::Base.establish_connection(
   :adapter  => 'sqlite3',
   :database => File.join(File.dirname(__FILE__), 'test.db')
@@ -14,12 +16,12 @@ class CreateSchema < ActiveRecord::Migration
     end
 
     create_table :posts, :force => true do |t|
-      t.string  :name  
+      t.string  :name
       t.integer :author_id
     end
-    
+
     create_table :business, :force => true do |t|
-      t.string  :name  
+      t.string  :name
       t.integer :owner_id
     end
   end

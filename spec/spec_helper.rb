@@ -1,7 +1,8 @@
 $: << File.join(File.dirname(__FILE__), '..', 'lib')
 $: << File.join(File.dirname(__FILE__))
 
-Bundler.require_env
+require 'bundler'
+Bundler.require
 
 require 'models'
 require 'factory_girl'
