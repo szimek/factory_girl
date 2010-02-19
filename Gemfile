@@ -1,4 +1,6 @@
-gem "rails", :git => "git://github.com/rails/rails.git"
+source "http://gemcutter.org"
+
+gem "rails"
 
 gem "cucumber"
 gem "rcov"
