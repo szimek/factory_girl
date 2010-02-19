@@ -21,16 +21,30 @@ def Factory (name, attrs = {})
   Factory.default_strategy(name, attrs)
 end
 
-if defined?(Rails.application) && Rails.application
-  Rails.configuration.after_initialize do
-    root = (defined?(Rails.root) && Rails.root) || RAILS_ROOT
-    Factory.definition_file_paths = [
-      File.join(root, 'test', 'factories'),
-      File.join(root, 'spec', 'factories')
-    ]
-    Factory.find_definitions
+if defined?(Rails)
+  if Rails::VERSION::MAJOR == 2
+    Rails.configuration.after_initialize do
+      Factory.definition_file_paths = [
+        File.join(RAILS_ROOT, 'test', 'factories'),
+        File.join(RAILS_ROOT, 'spec', 'factories')
+      ]
+      Factory.find_definitions
+    end
+  else
+    module FactoryGirl
+      class Railtie < Rails::Railtie
+        railtie_name :factory_girl
+
+        initializer "factory_girl.find_definitions" do |app|
+          Factory.definition_file_paths = [
+            File.join(Rails.root, 'test', 'factories'),
+            File.join(Rails.root, 'spec', 'factories')
+          ]
+          Factory.find_definitions
+        end
+      end
+    end
   end
 else
   Factory.find_definitions
 end
-
